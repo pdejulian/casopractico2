@@ -1,0 +1,59 @@
+# =============================================================================
+# playbook.yml - Despliegue de la app web en Podman sobre la VM (Sesión 2)
+# =============================================================================
+# Usa SOLO módulos nativos de Ansible (sin command/shell/script), tal como
+# exige la regla de oro del enunciado del Caso Práctico 2.
+#
+# Requisitos previos:
+#   ansible-galaxy collection install containers.podman
+#   ansible podman_vm -m ping   (comprobar conectividad SSH)
+# =============================================================================
+---
+- name: Desplegar servidor web en Podman sobre la VM
+  hosts: podman_vm
+  become: true
+
+  vars:
+    nombre_imagen: "web-vm"
+    nombre_contenedor: "cp2-web-vm"
+
+  tasks:
+    - name: Instalar Podman
+      ansible.builtin.apt:
+        name: podman
+        state: present
+        update_cache: true
+
+    - name: Iniciar sesión en el registro privado (ACR)
+      containers.podman.podman_login:
+        registry: "{{ acr_login_server }}"
+        username: "{{ acr_username }}"
+        password: "{{ acr_password }}"
+
+    - name: Descargar la imagen del servidor web desde el ACR
+      containers.podman.podman_image:
+        name: "{{ acr_login_server }}/{{ nombre_imagen }}:{{ image_tag }}"
+        pull: true
+
+    - name: Arrancar el contenedor y generar su servicio systemd
+      containers.podman.podman_container:
+        name: "{{ nombre_contenedor }}"
+        image: "{{ acr_login_server }}/{{ nombre_imagen }}:{{ image_tag }}"
+        state: started
+        ports:
+          - "443:443"
+        generate_systemd:
+          path: /etc/systemd/system
+          restart_policy: always
+          names: true
+          new: true
+
+    - name: Recargar systemd para reconocer el nuevo servicio
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+
+    - name: Habilitar e iniciar el servicio (persistente a reinicios)
+      ansible.builtin.systemd_service:
+        name: "container-{{ nombre_contenedor }}.service"
+        enabled: true
+        state: started
