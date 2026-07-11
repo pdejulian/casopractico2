@@ -1,0 +1,8 @@
+# Copiar este fichero como terraform.tfvars y rellenar con valores propios.
+# NUNCA subir terraform.tfvars ni el .tfstate al repositorio (contienen datos sensibles).
+
+subscription_id       = "PON-AQUI-TU-SUBSCRIPTION-ID"
+region_azure          = "swedencentral"
+nombre_grupo_recursos = "rg-casopractico2"
+nombre_acr            = "acrcasopractico2XXXX"   # debe ser único a nivel mundial
+sku_acr               = "Basic"
