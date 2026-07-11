@@ -35,3 +35,61 @@ variable "tag_imagenes" {
   type        = string
   default     = "casopractico2"
 }
+
+
+# ---------------------------------------------------------------------------
+# Variables de la Sesión 2 - Máquina virtual + Podman
+# ---------------------------------------------------------------------------
+
+variable "nombre_vm" {
+  description = "Nombre de la máquina virtual que alojará el servidor web en Podman"
+  type        = string
+  default     = "vm-casopractico2"
+}
+
+variable "tamano_vm" {
+  description = "Tamaño de la VM (serie B burstable, incluida en el free tier de estudiante)"
+  type        = string
+  default     = "Standard_B2ats_v2"
+}
+
+variable "usuario_admin_vm" {
+  description = "Usuario administrador de la máquina virtual"
+  type        = string
+  default     = "azureuser"
+}
+
+variable "ruta_clave_ssh_publica" {
+  description = "Ruta local a la clave pública SSH que se inyectará en la VM"
+  type        = string
+  default     = "~/.ssh/id_rsa.pub"
+}
+
+
+# -----------------------------------------------------------------------------
+# Variables de la Sesión 2: máquina virtual + Podman
+# -----------------------------------------------------------------------------
+
+variable "nombre_vm" {
+  description = "Nombre de la máquina virtual del servidor web"
+  type        = string
+  default     = "vm-casopractico2"
+}
+
+variable "tamano_vm" {
+  description = "Tamaño (SKU) de la VM. B-series burstable, dentro del free tier de estudiante"
+  type        = string
+  default     = "Standard_B2ats_v2"
+}
+
+variable "usuario_admin_vm" {
+  description = "Usuario administrador de la máquina virtual"
+  type        = string
+  default     = "azureuser"
+}
+
+variable "ruta_clave_publica_ssh" {
+  description = "Ruta local a la clave pública SSH que se inyecta en la VM"
+  type        = string
+  default     = "~/.ssh/id_rsa.pub"
+}
