@@ -3,7 +3,7 @@
 # Esta NO es la app final de Podman/Kubernetes: es solo para comprobar que
 # el registro funciona (build -> push -> pull) antes de avanzar a la Sesión 2.
 # =============================================================================
-FROM nginx:alpine
+FROM docker.io/nginx:alpine
 
 COPY index.html /usr/share/nginx/html/index.html
 
