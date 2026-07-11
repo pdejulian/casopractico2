@@ -5,8 +5,10 @@ terraform/*.tfstate.backup
 terraform/.terraform.lock.hcl
 terraform/terraform.tfvars
 
-# Ansible
-ansible/*.retry
-
 # Varios
 .DS_Store
+
+# Ansible (Sesion 2)
+ansible/hosts
+ansible/group_vars/all.yml
+ansible/*.retry
