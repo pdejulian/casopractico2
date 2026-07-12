@@ -1,0 +1,39 @@
+# =============================================================================
+# playbook_k8s.yml - Aplica manifiestos de Kubernetes contra el cluster AKS
+# =============================================================================
+# El AKS NO se gestiona por SSH: se gestiona con kubectl desde el equipo que
+# ejecuta el script (el "nodo de control"). Por eso "hosts: localhost": no
+# nos conectamos a ninguna VM, ejecutamos kubectl (via el modulo nativo
+# kubernetes.core.k8s) contra el cluster ya configurado con
+# "az aks get-credentials".
+# =============================================================================
+---
+- name: Desplegar y probar el pull del ACR en AKS
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Aplicar el pod de prueba de pull del ACR
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ playbook_dir }}/../kubernetes/pod-prueba.yaml"
+
+    - name: Esperar a que el pod de prueba llegue a Running
+      kubernetes.core.k8s_info:
+        kind: Pod
+        name: prueba-acr
+        namespace: default
+      register: estado_pod
+      until: estado_pod.resources[0].status.phase == "Running"
+      retries: 15
+      delay: 5
+
+    - name: Mostrar el estado final del pod de prueba
+      ansible.builtin.debug:
+        msg: "Pod de prueba en estado: {{ estado_pod.resources[0].status.phase }}"
+
+    - name: Borrar el pod de prueba (no es la app final)
+      kubernetes.core.k8s:
+        state: absent
+        src: "{{ playbook_dir }}/../kubernetes/pod-prueba.yaml"

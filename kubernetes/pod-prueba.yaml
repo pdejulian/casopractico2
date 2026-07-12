@@ -1,0 +1,18 @@
+# =============================================================================
+# pod-prueba.yaml - Prueba de pull del ACR privado desde AKS (Sesion 3)
+# =============================================================================
+# Pod suelto de un solo uso: si llega a estado "Running", confirma que el rol
+# AcrPull asignado al kubelet (ver aks-acr.tf) funciona correctamente.
+# Usa el repositorio "web-demo" (Sesion 1), ya existente en el ACR.
+# No es la app final: se borra despues de la prueba.
+# =============================================================================
+apiVersion: v1
+kind: Pod
+metadata:
+  name: prueba-acr
+  namespace: default
+spec:
+  restartPolicy: Never
+  containers:
+    - name: prueba
+      image: acrpdejuliancp2.azurecr.io/web-demo:casopractico2

@@ -27,3 +27,22 @@ output "ip_publica_vm" {
   description = "IP pública de la máquina virtual del servidor web"
   value       = azurerm_public_ip.ip_publica_vm.ip_address
 }
+
+# -----------------------------------------------------------------------------
+# Outputs de la Sesion 3 - Kubernetes (AKS)
+# -----------------------------------------------------------------------------
+
+output "aks_nombre_cluster" {
+  description = "Nombre del cluster AKS creado"
+  value       = azurerm_kubernetes_cluster.aks.name
+}
+
+output "aks_comando_credenciales" {
+  description = "Comando para configurar kubectl contra este cluster"
+  value       = "az aks get-credentials --resource-group ${azurerm_resource_group.grupo_recursos.name} --name ${azurerm_kubernetes_cluster.aks.name}"
+}
+
+output "nombre_grupo_recursos" {
+  description = "Nombre del grupo de recursos (usado por deploy.sh para az aks get-credentials)"
+  value       = azurerm_resource_group.grupo_recursos.name
+}

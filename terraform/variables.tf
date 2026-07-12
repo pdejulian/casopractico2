@@ -64,3 +64,31 @@ variable "ruta_clave_ssh_publica" {
   type        = string
   default     = "~/.ssh/id_rsa.pub"
 }
+
+# -----------------------------------------------------------------------------
+# Variables de la Sesion 3 - Kubernetes gestionado (AKS)
+# -----------------------------------------------------------------------------
+
+variable "nombre_aks" {
+  description = "Nombre del cluster de Kubernetes gestionado (AKS)"
+  type        = string
+  default     = "aks-casopractico2"
+}
+
+variable "dns_prefix_aks" {
+  description = "Prefijo DNS unico del cluster AKS"
+  type        = string
+  default     = "cp2aks"
+}
+
+variable "numero_nodos_aks" {
+  description = "Numero de nodos worker del cluster (el enunciado exige 1 como minimo)"
+  type        = number
+  default     = 1
+}
+
+variable "tamano_nodo_aks" {
+  description = "Tamano de la VM del nodo worker (2 vCPU, dentro de la cuota de 6 vCPU de Student)"
+  type        = string
+  default     = "Standard_D2s_v3"
+}
