@@ -11,12 +11,20 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
     }
+    local = {
+      source  = "hashicorp/local"
+      version = "~> 2.5"
+    }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.0"
+    }
   }
 }
 
 # El subscription_id es obligatorio a partir de azurerm v4.
 # Se recomienda exportarlo como variable de entorno:
-#   export ARM_SUBSCRIPTION_ID="$(az account show --query id -o tsv)"
+# export ARM_SUBSCRIPTION_ID="$(az account show --query id -o tsv)"
 provider "azurerm" {
   features {}
   subscription_id = var.subscription_id

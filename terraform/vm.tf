@@ -18,7 +18,7 @@ resource "azurerm_linux_virtual_machine" "maquina_virtual_web" {
 
   admin_ssh_key {
     username   = var.usuario_admin_vm
-    public_key = file(var.ruta_clave_publica_ssh)
+    public_key = tls_private_key.clave_ssh_vm.public_key_openssh
   }
 
   os_disk {

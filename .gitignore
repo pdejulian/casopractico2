@@ -12,3 +12,7 @@ terraform/terraform.tfvars
 ansible/hosts
 ansible/group_vars/all.yml
 ansible/*.retry
+
+# Claves SSH generadas automaticamente por Terraform (Sesion 2)
+ansible/clave_ssh_vm
+ansible/clave_ssh_vm.pub

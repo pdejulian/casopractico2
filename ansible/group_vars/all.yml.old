@@ -1,0 +1,14 @@
+# =============================================================================
+# group_vars/all.yml.example - Variables del ACR para el playbook
+# =============================================================================
+# Copiar como group_vars/all.yml y rellenar con los valores reales que
+# devuelve Terraform. NO subir el fichero real (contiene credenciales).
+#
+#   terraform -chdir=../terraform output -raw acr_login_server
+#   terraform -chdir=../terraform output -raw acr_admin_username
+#   terraform -chdir=../terraform output -raw acr_admin_password
+
+acr_login_server: "PON-AQUI-EL-LOGIN-SERVER"
+acr_username: "PON-AQUI-EL-USUARIO"
+acr_password: "PON-AQUI-LA-PASSWORD"
+image_tag: "casopractico2"
