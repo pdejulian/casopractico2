@@ -1,0 +1,51 @@
+# =============================================================================
+# wordpress-deployment.yaml - WordPress + sidecar Nginx (TLS) en el mismo pod
+# =============================================================================
+# Patron sidecar (visto en la Sesion 3): el proxy Nginx con certificado x.509
+# autofirmado "horneado" en su propia imagen (app-k8s-tls-proxy) llega al
+# contenedor de WordPress por localhost, ya que ambos comparten red dentro
+# del mismo pod. Asi la app se ve HTTPS desde fuera sin tocar la imagen
+# oficial de WordPress.
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: default
+  name: wordpress
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wordpress
+  template:
+    metadata:
+      labels:
+        app: wordpress
+    spec:
+      securityContext:
+        fsGroup: 33
+      containers:
+        - name: wordpress
+          image: wordpress:6-apache
+          ports:
+            - containerPort: 80
+          env:
+            - name: WORDPRESS_DB_HOST
+              value: "mysql:3306"
+            - name: WORDPRESS_DB_NAME
+              valueFrom: { secretKeyRef: { name: mysql-secret, key: MYSQL_DATABASE } }
+            - name: WORDPRESS_DB_USER
+              valueFrom: { secretKeyRef: { name: mysql-secret, key: MYSQL_USER } }
+            - name: WORDPRESS_DB_PASSWORD
+              valueFrom: { secretKeyRef: { name: mysql-secret, key: MYSQL_PASSWORD } }
+          volumeMounts:
+            - name: datos-wordpress
+              mountPath: /var/www/html
+        - name: proxy-tls
+          image: acrpdejuliancp2.azurecr.io/tls-proxy-k8s:casopractico2
+          ports:
+            - containerPort: 443
+      volumes:
+        - name: datos-wordpress
+          persistentVolumeClaim:
+            claimName: wordpress-pvc

@@ -1,11 +1,5 @@
 # =============================================================================
-# playbook_k8s.yml - Aplica manifiestos de Kubernetes contra el cluster AKS
-# =============================================================================
-# El AKS NO se gestiona por SSH: se gestiona con kubectl desde el equipo que
-# ejecuta el script (el "nodo de control"). Por eso "hosts: localhost": no
-# nos conectamos a ninguna VM, ejecutamos kubectl (via el modulo nativo
-# kubernetes.core.k8s) contra el cluster ya configurado con
-# "az aks get-credentials".
+# playbook_k8s.yml - ESTO ES UNA PRUEBA
 # =============================================================================
 ---
 - name: Desplegar y probar el pull del ACR en AKS

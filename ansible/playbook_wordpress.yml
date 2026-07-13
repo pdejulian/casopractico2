@@ -1,0 +1,91 @@
+# =============================================================================
+# playbook_wordpress.yml - Despliega WordPress + MySQL con persistencia en AKS
+# =============================================================================
+# hosts: localhost porque AKS se gestiona via API de Kubernetes (kubeconfig),
+# no por SSH. El orden importa: Secret y PVCs antes que los Deployments que
+# los referencian.
+# =============================================================================
+---
+- name: Desplegar WordPress + MySQL con almacenamiento persistente en AKS
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    dir_k8s: "{{ playbook_dir }}/../kubernetes"
+
+  tasks:
+    - name: Aplicar el Secret de credenciales de MySQL/WordPress
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ dir_k8s }}/mysql-secret.yaml"
+
+    - name: Aplicar el PVC de MySQL
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ dir_k8s }}/mysql-pvc.yaml"
+
+    - name: Desplegar MySQL
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ dir_k8s }}/mysql-deployment.yaml"
+
+    - name: Publicar el Service interno de MySQL
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ dir_k8s }}/mysql-service.yaml"
+
+    - name: Esperar a que MySQL este disponible
+      kubernetes.core.k8s_info:
+        kind: Pod
+        label_selectors:
+          - "app=mysql"
+      register: estado_mysql
+      until: >
+        estado_mysql.resources | length > 0 and
+        estado_mysql.resources[0].status.phase == "Running"
+      retries: 20
+      delay: 10
+
+    - name: Aplicar el PVC de WordPress
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ dir_k8s }}/wordpress-pvc.yaml"
+
+    - name: Desplegar WordPress (con sidecar TLS)
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ dir_k8s }}/wordpress-deployment.yaml"
+
+    - name: Publicar el Service externo (LoadBalancer, HTTPS)
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ dir_k8s }}/wordpress-service.yaml"
+
+    - name: Esperar a que WordPress este disponible
+      kubernetes.core.k8s_info:
+        kind: Pod
+        label_selectors:
+          - "app=wordpress"
+      register: estado_wp
+      until: >
+        estado_wp.resources | length > 0 and
+        estado_wp.resources[0].status.phase == "Running"
+      retries: 20
+      delay: 10
+
+    - name: Obtener la IP publica del Service de WordPress
+      kubernetes.core.k8s_info:
+        kind: Service
+        name: wordpress-svc
+        namespace: default
+      register: svc_wp
+      until: >
+        svc_wp.resources | length > 0 and
+        svc_wp.resources[0].status.loadBalancer.ingress is defined
+      retries: 20
+      delay: 15
+
+    - name: Mostrar la URL de acceso
+      ansible.builtin.debug:
+        msg: "WordPress disponible en: https://{{ svc_wp.resources[0].status.loadBalancer.ingress[0].ip }}/"

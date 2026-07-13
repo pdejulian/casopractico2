@@ -1,0 +1,35 @@
+---
+- name: Construir y publicar la imagen del sidecar TLS (WordPress) con Podman CLI
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - group_vars/all.yml
+
+  vars:
+    dir_proxy: "{{ playbook_dir }}/../app-k8s-tls-proxy"
+    nombre_imagen: "{{ acr_login_server }}/tls-proxy-k8s"
+
+  tasks:
+    - name: Iniciar sesion en el ACR (podman login)
+      ansible.builtin.command:
+        cmd: >
+          podman login {{ acr_login_server }}
+          --username {{ acr_username }}
+          --password {{ acr_password }}
+      changed_when: true
+
+    - name: Construir la imagen del proxy TLS (podman build)
+      ansible.builtin.command:
+        cmd: >
+          podman build
+          --format docker
+          --platform linux/amd64
+          -t {{ nombre_imagen }}:{{ image_tag }}
+          {{ dir_proxy }}
+      changed_when: true
+
+    - name: Publicar la imagen en el ACR (podman push)
+      ansible.builtin.command:
+        cmd: "podman push {{ nombre_imagen }}:{{ image_tag }}"
+      changed_when: true

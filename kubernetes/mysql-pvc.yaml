@@ -1,0 +1,15 @@
+# =============================================================================
+# mysql-pvc.yaml - Peticion de almacenamiento persistente para MySQL
+# =============================================================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: managed-csi
+  resources:
+    requests:
+      storage: 2Gi

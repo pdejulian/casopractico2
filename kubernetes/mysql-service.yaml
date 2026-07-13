@@ -1,0 +1,15 @@
+# =============================================================================
+# mysql-service.yaml - Nombre/IP estable interno para que WordPress halle MySQL
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: default
+  name: mysql
+spec:
+  type: ClusterIP
+  selector:
+    app: mysql
+  ports:
+    - port: 3306
+      targetPort: 3306
