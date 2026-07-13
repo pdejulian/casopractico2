@@ -8,6 +8,7 @@ export ANSIBLE_HOST_KEY_CHECKING=False
 
 DIR_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DIR_TERRAFORM="$DIR_SCRIPT/../terraform"
+DIR_APP_WEB="$DIR_SCRIPT/../app-web"
 
 echo ">>> 1) Aplicando infraestructura con Terraform (ACR + VM + AKS)..."
 terraform -chdir="$DIR_TERRAFORM" init -input=false
@@ -21,25 +22,44 @@ ansible-galaxy collection install kubernetes.core
 ansible-galaxy collection install community.docker
 python3 -m pip install --quiet --break-system-packages --ignore-installed PyYAML kubernetes
 
-echo ">>> 4) Esperando a que la VM responda por SSH..."
+echo ">>> 4) Construyendo y subiendo la imagen de la app web al ACR..."
+ACR_LOGIN_SERVER=$(terraform -chdir="$DIR_TERRAFORM" output -raw acr_login_server)
+ACR_NOMBRE="${ACR_LOGIN_SERVER%%.*}"          
+IMAGEN_WEB_NOMBRE="web-vm"
+IMAGEN_WEB_TAG="casopractico2"
+
+echo "    Autenticando en el ACR ($ACR_NOMBRE)..."
+az acr login --name "$ACR_NOMBRE"
+
+echo "    Construyendo imagen ${IMAGEN_WEB_NOMBRE}:${IMAGEN_WEB_TAG} (linux/amd64)..."
+podman build --platform linux/amd64 \
+  -t "${ACR_LOGIN_SERVER}/${IMAGEN_WEB_NOMBRE}:${IMAGEN_WEB_TAG}" \
+  "$DIR_APP_WEB"
+
+echo "    Subiendo imagen al ACR..."
+podman push "${ACR_LOGIN_SERVER}/${IMAGEN_WEB_NOMBRE}:${IMAGEN_WEB_TAG}"
+
+echo "    Verificando que la imagen esta en el ACR..."
+az acr repository show-tags --name "$ACR_NOMBRE" --repository "$IMAGEN_WEB_NOMBRE" --output table
+
+echo ">>> 5) Esperando a que la VM responda por SSH..."
 until ansible podman_vm -i "$DIR_SCRIPT/hosts" -m ping &>/dev/null; do
   echo "    ...VM todavia no responde, reintentando en 10s"
   sleep 10
 done
 
-echo ">>> 5) Desplegando el servidor web en Podman (VM)..."
+echo ">>> 6) Desplegando el servidor web en Podman (VM)..."
 ansible-playbook -i "$DIR_SCRIPT/hosts" "$DIR_SCRIPT/playbook.yml"
 
-echo ">>> 6) Obteniendo credenciales del cluster AKS (kubeconfig)..."
+echo ">>> 7) Obteniendo credenciales del cluster AKS (kubeconfig)..."
 NOMBRE_GRUPO=$(terraform -chdir="$DIR_TERRAFORM" output -raw nombre_grupo_recursos)
 NOMBRE_AKS=$(terraform -chdir="$DIR_TERRAFORM" output -raw aks_nombre_cluster)
 az aks get-credentials --resource-group "$NOMBRE_GRUPO" --name "$NOMBRE_AKS" --overwrite-existing
 
-
-echo ">>> 7) Construyendo y subiendo la imagen del proxy TLS (Ansible + Podman)..."
+echo ">>> 8) Construyendo y subiendo la imagen del proxy TLS (Ansible + Podman)..."
 ansible-playbook "$DIR_SCRIPT/playbook_imagen_proxy.yml"
 
-echo ">>> 8) Desplegando WordPress + MySQL con persistencia en AKS..."
+echo ">>> 9) Desplegando WordPress + MySQL con persistencia en AKS..."
 ansible-playbook "$DIR_SCRIPT/playbook_wordpress.yml"
 
 echo ">>> Despliegue completado: VM (Podman) + AKS (WordPress persistente)."

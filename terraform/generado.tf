@@ -8,7 +8,7 @@ resource "local_file" "inventario_ansible" {
   content = templatefile("${path.module}/templates/hosts.tpl", {
     ip_publica     = azurerm_public_ip.ip_publica_vm.ip_address
     usuario_admin  = var.usuario_admin_vm
-    ruta_clave_privada = "./clave_ssh_vm"
+    ruta_clave_privada = abspath("${path.module}/../ansible/clave_ssh_vm")
   })
   depends_on = [local_file.clave_privada_ssh]
 }
